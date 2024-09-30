@@ -1,0 +1,41 @@
+# Server / Simple Model Config
+server:
+  no: 1
+  model_type: "baseline"
+  pre_process_type:
+    - "baseline"
+
+# Data Config
+data:
+  valid_size: 0.2
+  random_state: 42
+  path: "./data/train.csv"
+
+## Model Config
+light-gbm:
+  boosting_type: "gbdt"
+  objective: "multiclass"
+  metric: "multi_logloss"
+  num_class: 4
+  num_leaves: 50
+  learning_rate: 0.01
+  n_estimators: 30
+  verbose: 0
+
+lag-feature:
+  max_lag: 3
+  windows: [ 3, 6, 12 ]
+xgboost:
+  objective: "multi:softmax"
+  eval_metric: "mlogloss"
+  num_class: 4
+  max_depth: 7
+  learning_rate: 0.05
+  subsample: 0.9
+  colsample_bytree: 0.9
+  early_stopping_rounds: 10
+  verbose: 0
+
+#tree_method: 'gpu_hist' #GPU 사용시
+#predictor: 'gpu_predictor' #GPU 사용시
+
