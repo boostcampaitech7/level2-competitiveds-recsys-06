@@ -1,10 +1,10 @@
 .vscode/
-#/data
+/data
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-#*.csv
+*.csv
 # C extensions
 config.yaml
 *.so
