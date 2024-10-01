@@ -6,6 +6,7 @@ from src.pre_procecss.interface import PreProcessInterface
 
 class FeatureAddition(PreProcessInterface):
     def __init__(self, df: pd.DataFrame):
+        super(FeatureAddition, self).__init__(df)
         pass
 
     def get_train_test(self) -> (pd.DataFrame, pd.DataFrame):
