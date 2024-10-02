@@ -22,7 +22,7 @@ class FeatureAddition(PreProcessInterface):
     def create_area_price(self):
         df = self.df
         df["area"] = (df["area_m2"] / 3.3).round(1)
-        df["area_price"] = df["deposit"] / df["area_m2"]
+        df["area_price"] = df["deposit"] / df["area"]
         df["area_m2_price"] = df["deposit"] / df["area_m2"]
         self.df = df
 
