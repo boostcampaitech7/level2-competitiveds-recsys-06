@@ -16,4 +16,4 @@ class FeatureDuplication(PreProcessInterface):
         return self.df
 
     def _preprocess(self):
-        self.df = self.df[self.df.drop(columns=["index"], errors="ignore").duplicated()]
+        self.df = self.df.drop(columns=["index"]).drop_duplicates(keep="first")
