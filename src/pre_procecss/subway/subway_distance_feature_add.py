@@ -18,9 +18,12 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
     - nearest_subway_distance: 가장 가까운 지하철역까지의 거리 (미터 단위)
     - nearest_subway_idx: 가장 가까운 지하철역의 subway_idx
     - num_subway_within_1km: 반경 1km 내의 지하철역 개수
-    - list_subway_idx_within_1km: 반경 1km 내의 지하철역 subway_idx 리스트
     - category_interchange_within_1km: 반경 1km 내에 환승역 존재 여부 카테고리
     (0: 지하철역 없음, 1: 지하철역 1개이상(환승역x), 2: 지하철역 1개이상(환승역 포함))
+    - num_subway_within_500m: 반경 500m 내의 지하철역 개수
+    - category_interchange_within_500m: 반경 500m 내에 환승역 존재 여부 카테고리
+    (0: 지하철역 없음, 1: 지하철역 1개이상(환승역x), 2: 지하철역 1개이상(환승역 포함))
+
     """
 
     def __init__(self, df: pd.DataFrame):
