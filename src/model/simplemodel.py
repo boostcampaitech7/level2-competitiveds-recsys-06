@@ -3,9 +3,9 @@ from typing import Type, Tuple, List
 import pandas as pd
 from numpy import ndarray
 
-from src.pre_procecss.interface import PreProcessInterface
+from src.pre_process.interface import PreProcessInterface
 from src.model.interface import ModelInterface
-from src.pre_procecss.features.baseline import BaseLineData
+from src.pre_process.features.baseline import BaseLineData
 
 
 class SimpleModel:
@@ -72,7 +72,7 @@ class SimpleModel:
             raise Exception(f"{self.model_type}: 해당 모델은 지원되지 않습니다.")
 
     def _get_pre_process(self) -> list[Type[PreProcessInterface]]:
-        from src.pre_procecss.features.final import (
+        from src.pre_process.features.final import (
             PreProcessor as final_pp,
         )
 
