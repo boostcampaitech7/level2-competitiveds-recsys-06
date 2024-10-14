@@ -12,7 +12,7 @@
 │   └── pre_process # 모델 학습전 전처리
 ├── data #.gitignore
 │   └── .csv #.gitignore
-│     └── etc # 기타 csv 저장을 위한 저장소
+│     └── processed # 기타 csv 저장을 위한 저장소
 ├── EDA # 개인 EDA 폴더
 │   └── {팀원 명} 
 │        ├──*.ipynb
