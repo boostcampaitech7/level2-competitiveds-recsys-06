@@ -31,6 +31,11 @@ class DiffInterestRateAdder(PreProcessInterface):
         # datetime 칼럼을 기준으로 오름차순 정렬
         self.merged_df.sort_values(by=datetime_col_df1, inplace=True)
         self.merged_df.reset_index(drop=True, inplace=True)
+        # interest_rate 칼럼이 존재하는지 확인하고 diff_interestRate 칼럼 추가
+        if "interest_rate" in self.merged_df.columns:
+            self.merged_df["diff_interest_rate"] = self.merged_df["interest_rate"].diff()
+        else:
+            raise ValueError("병합된 데이터프레임에 'interest_rate' 칼럼이 존재하지 않습니다.")
 
     def get_data(self) -> pd.DataFrame:
         return self.merged_df
