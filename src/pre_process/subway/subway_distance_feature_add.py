@@ -26,8 +26,11 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
 
     """
 
-    def __init__(self, df: pd.DataFrame):
-        super(SubwayDistanceFeatureAddition, self).__init__(df)
+    def __init__(self, df: pd.DataFrame, subway_info: pd.DataFrame, **kwargs):
+        self.subway_info: pd.DataFrame = SubwayInfoFeatureAddition(
+            subway_info
+        ).get_data()
+        super(SubwayDistanceFeatureAddition, self).__init__(df, **kwargs)
         pass
 
     def get_train_test(self) -> (pd.DataFrame, pd.DataFrame):
@@ -37,11 +40,7 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
         return self.df
 
     def _preprocess(self):
-        pass
-
-    def add_subway_info(self, subway_info: pd.DataFrame):
-        # subway_info에 대한 전처리 수행 후 인스턴스 변수로 추가
-        self.subway_info = SubwayInfoFeatureAddition(subway_info).get_data()
+        self.add_subway_features()
         pass
 
     def add_subway_features(self):
@@ -68,7 +67,7 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
 
         # 거리 (라디안)를 미터 단위로 변환
         temp_df["nearest_subway_distance"] = (
-                distances.flatten() * EARTH_RADIUS_KM * 1000
+            distances.flatten() * EARTH_RADIUS_KM * 1000
         )  # meters
 
         # 가장 가까운 지하철역의 subway_idx 추출
@@ -85,6 +84,7 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
         # 반경 1km 내의 지하철역 개수
         temp_df["num_subway_within_1km"] = [len(ind) for ind in indices_within_1km]
 
+        # (추가적인 EDA 진행되면 추가하고 일단 제외)
         # # 반경 1km 내의 지하철역 subway_idx 리스트
         # temp_df["list_subway_idx_within_1km"] = [
         #     subway_info["subway_idx"].iloc[ind].tolist() for ind in indices_within_1km
@@ -119,11 +119,6 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
         temp_df["num_subway_within_500m"] = [len(ind) for ind in indices_within_500m]
 
         # 각 아파트에 대해 반경 500m 내의 Interchange_station 개수 계산
-        interchange_counts_500m = [
-            subway_info["Interchange_station"].iloc[ind].ge(2).sum()
-            for ind in indices_within_500m
-        ]
-
         temp_df["category_interchange_within_500m"] = [
             (
                 0
@@ -135,7 +130,7 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
             for ind in indices_within_500m
         ]
 
-        # 'category_interchange_within_1km' 컬럼을 0과 1로 변환
+        # 'category_interchange_within_1km', '~500m' 컬럼을 0과 1로 변환
         temp_df["category_interchange_within_1km"] = temp_df[
             "category_interchange_within_1km"
         ].astype(int)
