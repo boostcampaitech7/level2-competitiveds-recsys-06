@@ -5,7 +5,7 @@ import pandas as pd
 
 class PreProcessInterface(ABC):
     @abstractmethod
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame, **kwargs):
         self.df: pd.DataFrame = df
         self._preprocess()
         pass
