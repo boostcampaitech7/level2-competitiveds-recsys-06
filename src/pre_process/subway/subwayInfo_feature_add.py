@@ -1,7 +1,7 @@
 import pandas as pd
 
 from typing import List
-from src.pre_procecss.interface import PreProcessInterface
+from src.pre_process.interface import PreProcessInterface
 
 
 class SubwayInfoFeatureAddition(PreProcessInterface):

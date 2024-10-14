@@ -3,8 +3,8 @@ import numpy as np
 from sklearn.neighbors import BallTree
 
 from typing import List
-from src.pre_procecss.interface import PreProcessInterface
-from src.pre_procecss.subway.subwayInfo_feature_add import SubwayInfoFeatureAddition
+from src.pre_process.interface import PreProcessInterface
+from src.pre_process.subway.subwayInfo_feature_add import SubwayInfoFeatureAddition
 
 
 class SubwayDistanceFeatureAddition(PreProcessInterface):
@@ -68,7 +68,7 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
 
         # 거리 (라디안)를 미터 단위로 변환
         temp_df["nearest_subway_distance"] = (
-            distances.flatten() * EARTH_RADIUS_KM * 1000
+                distances.flatten() * EARTH_RADIUS_KM * 1000
         )  # meters
 
         # 가장 가까운 지하철역의 subway_idx 추출
