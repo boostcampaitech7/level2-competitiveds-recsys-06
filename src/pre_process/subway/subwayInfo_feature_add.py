@@ -9,8 +9,8 @@ class SubwayInfoFeatureAddition(PreProcessInterface):
     subwayInfo.csv에 주어진 순서대로 subway_idx를 부여하고 환승역 카테고리 컬럼을 추가하는 클래스
     """
 
-    def __init__(self, df: pd.DataFrame):
-        super(SubwayInfoFeatureAddition, self).__init__(df)
+    def __init__(self, df: pd.DataFrame, **kwargs):
+        super(SubwayInfoFeatureAddition, self).__init__(df, **kwargs)
         pass
 
     def get_train_test(self) -> (pd.DataFrame, pd.DataFrame):
