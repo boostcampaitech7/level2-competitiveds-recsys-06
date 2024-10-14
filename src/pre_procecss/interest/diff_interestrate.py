@@ -5,54 +5,48 @@ from src.pre_process.interface import PreProcessInterface
 class DiffInterestRateAdder(PreProcessInterface):
     """
     두 개의 데이터프레임을 인자로 받아서 이전 달 대비 이자율 변화량을 계산하고 병합합니다.
-    매개변수로 받은 df에서 datetime으로 구성된 열을 확인하고 datetime 형식의 열이 없을 시 "year_month"를 포함하는 열을 datetime 형식으로 변환합니다.
-    해당 열을 기준으로 병합한 후, 오름차순으로 정렬합니다.
-    "interestRate" 칼럼이 존재하는지 확인하여 이전 달 대비 변화량을 의미하는 "diff_interestRate" 칼럼을 추가합니다.
-    """
-class DiffInterestRateAdder(PreProcessInterface):
-    """
-    두 개의 데이터프레임을 인자로 받아서 이전 달 대비 이자율 변화량을 계산하고 병합합니다.
     매개변수로 받은 df에서 datetime으로 구성된 열을 확인하고, datetime 형식의 열이 없을 시 "year_month"를 포함하는 열을 datetime 형식으로 변환합니다.
     해당 열을 기준으로 병합한 후, 오름차순으로 정렬합니다.
     'interest_rate' 칼럼이 존재하는지 확인하여 이전 달 대비 변화량을 의미하는 'diff_interest_rate' 칼럼을 추가합니다.
     """
-    def __init__(self, df1: pd.DataFrame, df2: pd.DataFrame):
-        self.df1 = df1
-        self.df2 = df2
-        self.merged_df = None
-        self._preprocess()
+    def __init__(self, df: pd.DataFrame, df_interest: pd.DataFrame):
+        self.df_interest = df_interest
+        super(DiffInterestRateAdder, self).__init__(df)
 
     def get_train_test(self) -> (pd.DataFrame, pd.DataFrame):
         pass
 
-    def _preprocess(self):
-        # df1과 df2에서 datetime 형식의 첫 번째 칼럼을 찾아 반환
-        datetime_col_df1 = self._get_datetime_column(self.df1)
-        datetime_col_df2 = self._get_datetime_column(self.df2)
-
-        # datetime 형식으로 변환
-        self.df1[datetime_col_df1] = pd.to_datetime(self.df1[datetime_col_df1], format="%Y%m")
-        self.df2[datetime_col_df2] = pd.to_datetime(self.df2[datetime_col_df2], format="%Y%m")
-        
-        # interest_rate 칼럼이 존재하는지 확인하고 diff_interest_rate 계산
-        if 'interest_rate' in self.df1.columns:
-            self.df1.sort_values(by=datetime_col_df1, inplace=True)
-            self.df1['diff_interest_rate'] = self.df1['interest_rate'].diff()
-        
-        if 'interest_rate' in self.df2.columns:
-            self.df2.sort_values(by=datetime_col_df2, inplace=True)
-            self.df2['diff_interest_rate'] = self.df2['interest_rate'].diff()
-        
-        # 두 데이터프레임 병합
-        self.merged_df = pd.merge(self.df1, self.df2, left_on=datetime_col_df1, right_on=datetime_col_df2, how="inner")
-        
-        # 병합된 데이터프레임을 datetime 기준으로 오름차순 정렬
-        self.merged_df.sort_values(by=datetime_col_df1, inplace=True)
-        self.merged_df.reset_index(drop=True, inplace=True)
-
     def get_data(self) -> pd.DataFrame:
         return self.merged_df
     
+    def _preprocess(self):
+        self._find_datetime_column()
+
+    def _find_datetime_column(self):
+        # df과 df_interest에서 datetime 형식의 첫 번째 칼럼을 찾아 반환
+        datetime_col_df = self._get_datetime_column(self.df)
+        datetime_col_df_interest = self._get_datetime_column(self.df_interest)
+
+        # datetime 형식으로 변환
+        self.df[datetime_col_df] = pd.to_datetime(self.df[datetime_col_df], format="%Y%m")
+        self.df_interest[datetime_col_df_interest] = pd.to_datetime(self.df_interest[datetime_col_df_interest], format="%Y%m")
+        
+        # interest_rate 칼럼이 존재하는지 확인하고 diff_interest_rate 계산
+        if 'interest_rate' in self.df.columns:
+            self.df.sort_values(by=datetime_col_df, inplace=True)
+            self.df['diff_interest_rate'] = self.df['interest_rate'].diff()
+        
+        if 'interest_rate' in self.df_interest.columns:
+            self.df_interest.sort_values(by=datetime_col_df_interest, inplace=True)
+            self.df_interest['diff_interest_rate'] = self.df_interest['interest_rate'].diff()
+        
+        # 두 데이터프레임 병합
+        self.merged_df = pd.merge(self.df, self.df_interest, left_on=datetime_col_df, right_on=datetime_col_df_interest, how="inner")
+        
+        # 병합된 데이터프레임을 datetime 기준으로 오름차순 정렬
+        self.merged_df.sort_values(by=datetime_col_df, inplace=True)
+        self.merged_df.reset_index(drop=True, inplace=True)
+
     def _get_datetime_column(self, df: pd.DataFrame):
         # 데이터프레임에서 datetime 형식의 칼럼을 확인하고 없을 경우 year_month를 포함하는 칼럼을 반환
         datetime_columns = df.select_dtypes(include=["datetime"]).columns
