@@ -31,7 +31,6 @@ class SchoolInfoFeatureAdd(PreProcessInterface):
 
             추가 컬럼
             [
-                'apt_idx'
                 for l in ['elementary', 'middle', 'high']:
                     col_names.extend([
                         f'nearest_{l}_school_distance'

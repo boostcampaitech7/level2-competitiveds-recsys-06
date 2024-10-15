@@ -31,7 +31,6 @@ class ParkInfoFeatureAdd(PreProcessInterface):
 
             추가 컬럼
             [
-                'apt_idx'
                 , 'nearest_park_distance'
                 , 'nearest_park_distance_within_{interval_str}'
                 , 'has_park_within_{interval_str}'
