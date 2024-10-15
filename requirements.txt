@@ -10,3 +10,5 @@ plotly==5.24.1
 matplotlib==3.9.2
 geopy==2.4.1
 swifter
+folium==0.17.0
+pyproj==3.7.0
