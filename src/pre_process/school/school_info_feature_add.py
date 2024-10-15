@@ -47,7 +47,7 @@ class SchoolInfoFeatureAdd(PreProcessInterface):
             -> 추가할 컬럼명에 사용한다.
 
             radius:
-            산정구간(기본0.5km) / EARTH_RADIUS_KM
+            산정구간(기본1km) / EARTH_RADIUS_KM
             -> 산정구간은 아파트를 기준점으로한다
         '''
         interval_str = f'{interval}km' if interval >= 1. else f'{interval * 1000}m'
