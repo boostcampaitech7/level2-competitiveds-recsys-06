@@ -67,7 +67,7 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
 
         # 거리 (라디안)를 미터 단위로 변환
         temp_df["nearest_subway_distance"] = (
-            distances.flatten() * EARTH_RADIUS_KM * 1000
+                distances.flatten() * EARTH_RADIUS_KM * 1000
         )  # meters
 
         # 가장 가까운 지하철역의 subway_idx 추출
@@ -162,3 +162,26 @@ class SubwayDistanceFeatureAddition(PreProcessInterface):
         )
 
         self.df = df
+
+    @staticmethod
+    def add_one_hot_coding_subway_idx(df: pd.DataFrame):
+        """
+        df : Subway관련 전처리가 포함된 데이터 프레임입니다.
+        반드시 list_subway_idx_within_1km를 포함해야 합니다.
+        해당 메서드를 통해 리스트에있는 subway idx를 one_hot_coding으로 변환해줍니다.
+        예상 시간은 30분 입니다.
+
+        추후 apt_idx를 통해 최적화를 하게되면 시간이 더욱 단축 될 것입니다. (예상 1분이내)
+        """
+        from tqdm import tqdm
+
+        columns = df.columns
+
+        for i in tqdm(range(0, df.shape[0])):
+            subway_ls_i: List[int] = df.loc[i, "list_subway_idx_within_1km"]
+            for e in subway_ls_i:
+                subway_id = f"sb_{e}"
+                if subway_id not in columns:
+                    df[subway_id] = 0
+                    columns = df.columns
+                df.loc[i, subway_id] = 1
