@@ -32,6 +32,7 @@ class FeatureAptDepositRanking(PreProcessInterface):
 
     def create_apt_deposit_rank(self):
         # latitude와 longitude가 같은 것끼리 groupby하여 deposit의 평균을 계산
+        df = self.df
         grouped_df = (
             df.groupby(["latitude", "longitude"])["deposit"]
             .agg(["mean", "count"])
@@ -61,6 +62,7 @@ class FeatureAptDepositRanking(PreProcessInterface):
 
     def create_apt_area_deposit_rank(self):
         # latitude, longitude, area_m2로 그룹화하여 deposit의 평균을 계산
+        df = self.df
         grouped_area_df = (
             df.groupby(["latitude", "longitude", "area_m2"])["deposit"]
             .agg(["mean", "count"])
