@@ -37,7 +37,7 @@ class DiffInterestRateAdder(PreProcessInterface):
             self.df_interest['diff_interest_rate'] = self.df_interest['interest_rate'].diff()
         
         # 두 데이터프레임 병합
-        self.merged_df = pd.merge(self.df, self.df_interest, left_on=datetime_col_df, right_on=datetime_col_df_interest, how="inner")
+        self.merged_df = pd.merge(self.df, self.df_interest, left_on=datetime_col_df, right_on=datetime_col_df_interest, how="left")
         
     def _get_datetime_column(self, df: pd.DataFrame):
         # 데이터프레임에서 datetime 형식의 칼럼을 확인하고 없을 경우 year_month를 포함하는 칼럼을 반환
