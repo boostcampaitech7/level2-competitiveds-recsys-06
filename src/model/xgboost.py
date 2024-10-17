@@ -39,6 +39,10 @@ class Model(ModelInterface):
         self.hyper_params = params
         self.mode: str | None = None
 
+    def get_model(self):
+        assert self.model is not None
+        return self.model
+
     def train(self):
         try:
             self.mode = "train"

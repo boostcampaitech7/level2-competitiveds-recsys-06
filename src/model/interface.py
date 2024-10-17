@@ -23,3 +23,7 @@ class ModelInterface(ABC):
     @abstractmethod
     def export_model(self, dir_path: str):
         pass
+
+    @abstractmethod
+    def get_model(self):
+        pass

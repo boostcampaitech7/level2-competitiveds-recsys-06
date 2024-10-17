@@ -12,3 +12,4 @@ geopy==2.4.1
 swifter
 folium==0.17.0
 pyproj==3.7.0
+wandb==0.18.3

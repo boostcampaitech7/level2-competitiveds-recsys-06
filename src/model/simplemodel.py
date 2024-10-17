@@ -5,15 +5,14 @@ from numpy import ndarray
 
 from src.pre_process.interface import PreProcessInterface
 from src.model.interface import ModelInterface
-from src.pre_process.features.baseline import BaseLineData
 
 
 class SimpleModel:
     def __init__(
-            self,
-            data: pd.DataFrame = None,
-            model_type: str = None,
-            pre_process_type: List[str] = None,
+        self,
+        data: pd.DataFrame = None,
+        model_type: str = None,
+        pre_process_type: List[str] = None,
     ):
         self._get_config()  # 하이퍼 파라미터 부분 및 기타 설정 - config-sample.yaml 수정에 따라 사용
         if data is None:
@@ -59,7 +58,7 @@ class SimpleModel:
 
     def _get_model(self) -> Type[ModelInterface]:
         # Model Class Import
-        from src.model.baseline import Model as lgbm
+        from src.model.lgbm import Model as lgbm
         from src.model.xgboost import Model as xgb
 
         # 타입별 모델 변경
@@ -72,9 +71,6 @@ class SimpleModel:
             raise Exception(f"{self.model_type}: 해당 모델은 지원되지 않습니다.")
 
     def _get_pre_process(self) -> list[Type[PreProcessInterface]]:
-        from src.pre_process.features.final import (
-            PreProcessor as final_pp,
-        )
 
         # Type별 Class 전처리 추가
         pp_list = []
