@@ -1,40 +1,48 @@
 # Server / Simple Model Config
 server:
   no: 1
-  model_type: "baseline"
+  model_type: "lgmb" # .py name => xgboost / lgbm
+  mode: "train" # kfold-train / train Two options
   pre_process_type:
-    - "baseline"
-
+    - "submit"
+print:
+  evaluation-period: 100 # Only input int
 # Data Config
 data:
-  valid_size: 0.2
+  k-fold:
+    n_folds: 5
+    shuffle: True
   random_state: 42
   path: "./data/train.csv"
+  target: "deposit"
 
 ## Model Config
+
 light-gbm:
-  boosting_type: "gbdt"
-  objective: "multiclass"
-  metric: "multi_logloss"
-  num_class: 4
-  num_leaves: 50
-  learning_rate: 0.01
-  n_estimators: 30
-  verbose: 0
+  objective: 'regression'
+  metric: 'mae'
+  boosting_type: 'gbdt'
+  num_leaves: 31
+  learning_rate: 0.05
+  feature_fraction: 0.9
+  bagging_fraction: 0.8
+  bagging_freq: 5
+  num_boost_round: 1000
 
 lag-feature:
   max_lag: 3
   windows: [ 3, 6, 12 ]
 xgboost:
-  objective: "multi:softmax"
-  eval_metric: "mlogloss"
+  objective: "reg:absoluteerror"
+  eval_metric: "mae"
+  max_depth: 6
+  subsample: 0.8
+  colsample_bytree: 0.8
   num_class: 4
-  max_depth: 7
   learning_rate: 0.05
-  subsample: 0.9
-  colsample_bytree: 0.9
-  early_stopping_rounds: 10
-  verbose: 0
+  num_boost_round: 1000
+  early_stopping_rounds: 50
+  verbose: 10
 
 #tree_method: 'gpu_hist' #GPU 사용시
 #predictor: 'gpu_predictor' #GPU 사용시
