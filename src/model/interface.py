@@ -43,7 +43,7 @@ class ModelInterface(ABC):
     def _convert_pred_dataset(self, df):
         pass
 
-    def predict(self, df: pd.DataFrame, target: str):
+    def predict(self, df: pd.DataFrame, target: str) -> pd.DataFrame:
         assert self.model is not None
         df = df.drop(columns=[target], errors="ignore")
         df = self._convert_pred_dataset(df)
@@ -54,7 +54,9 @@ class ModelInterface(ABC):
             pred = oof_pred / len(self.model)
         else:
             pred = self.model.predict(df)
-        return pred
+        df["pred"] = pred
+        df.reset_index(inplace=True, drop=False)
+        return df[["index", "pred"]]
 
     def get_model(self):
         assert self.model is not None

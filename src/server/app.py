@@ -25,6 +25,12 @@ def app():
         run.notes = config
         model = SimpleModel(config)
         model.train()
+        pred = model.predict()
+        filepath = os.path.join(
+            config.get("data").get("output_path"),
+            f"{run_name}-{datetime.datetime.now()}.csv",
+        )
+        pred.to_csv(filepath, index=False)
 
 
 if __name__ == "__main__":
