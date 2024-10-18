@@ -5,6 +5,8 @@
 <details>
     <summary> 프로젝트 구조</summary>
 
+[GoogleDrive(DATA 저장 경로)](https://drive.google.com/drive/folders/1V87hu50-TKT2XQSWAIif8YzoVygJdc1l?hl=ko)
+
 ```bash
 ├── src # AI 모델 학습을 위한 부분
 │   ├── config # config.yaml 값 가져 오는 함수 제공
