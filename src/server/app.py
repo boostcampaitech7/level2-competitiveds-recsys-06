@@ -5,50 +5,26 @@ import os
 
 import wandb
 
+from src.model.simplemodel import SimpleModel
+
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
+from src.custom_wandb import WandB
 
 from src.config import get_config
 
 
 def app():
+    _ = WandB()
     config = get_config()
-    server_name = f'server-{config.get("server").get("no")}'
-    print("---- START ----")
-    print(server_name)
-    wandb.login(key=config.get("wandb").get("api_key"))
-    # 프로젝트 반복문
-    #  model_test_code(wandb, server_name, {"": ""})  # config
-
-    return
-
-
-def model_test_code(w, server_name: str, config: Dict[any, any]):
-    model_config = config  # config.get("~")
-    ## Model 시작전
-    with wandb.init(project=server_name) as run:
-        prj_name = ""  # Model Name
-        run.name = prj_name
-        run.config.update(model_config)
-        run.notes = f"""
-        ```json
-        {model_config}
-        ```
-        """
-        # Model 적용
-        model = None
-        run.watch(model)
-        # wandb.log({
-        #     #"Examples": example_images, #
-        #     "Valid Method: config.get("server").get("valid_type")
-        #     "Valid Accuracy": valid_acc,
-        #     "Valid Loss": valid_loss})
-
-        # wandb.log({
-        #     #"Examples": example_images, #
-        #     "Test Accuracy": test_acc,
-        #     "Test Loss": test_loss})
+    server_conf = config.get("server")
+    run_name = f"{server_conf.get("no")}-{server_conf.get("model_type")}-{server_conf.get('mode')}"
+    with wandb.init() as run:
+        run.name = run_name
+        run.notes = config
+        model = SimpleModel(config)
+        model.train()
 
 
 if __name__ == "__main__":
