@@ -13,8 +13,8 @@ data:
     n_folds: 5
     shuffle: True
   random_state: 42
-  path: "./data/train.csv"
-  output_path: "./data"
+  path: "https://docs.google.com/uc?export=download&id=18Prn-WrcH6fyOOAHMDld71CyZKR3Y-q5" #V6
+  output_path: "./data" # 해당 파라미터는 수정하지 마세요.
   target: "deposit"
   type_feature: "_type" # train/test type feature
 

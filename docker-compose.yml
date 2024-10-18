@@ -1,0 +1,8 @@
+services:
+  server:
+    image: python:3.12.5-slim
+    volumes:
+      - .:.
+    entrypoint:
+      - "python"
+      - "./server/app.py"
