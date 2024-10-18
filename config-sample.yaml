@@ -15,6 +15,7 @@ data:
   random_state: 42
   path: "./data/train.csv"
   target: "deposit"
+  type_feature: "_type" # train/test type feature
 
 ## Model Config
 
