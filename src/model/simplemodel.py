@@ -28,6 +28,7 @@ class SimpleModel:
                 "pre_process_type"
             )
         self.target_feature = config.get("data").get("target")
+        self.type_feature = self.config.get("data").get("type_feature")
         self.model: ModelInterface
         self.train_df: pd.DataFrame | None = None
         self.test_df: pd.DataFrame | None = None
@@ -40,7 +41,7 @@ class SimpleModel:
         if self.train_df is None or self.test_df is None:
             self._update_data_by_pp()
         model = self._get_model()(
-            self.train_df.drop(columns=[self.target_feature], axis=1, errors="ignore"),
+            self.train_df.drop(columns=[self.target_feature], errors="ignore"),
             self.train_df[self.target_feature],
             self.config,
         )
@@ -52,22 +53,25 @@ class SimpleModel:
         for pre_precess in pre_precess_list:
             pp = pre_precess(self.data)
             self.data = pp.get_data()
-        _type = self.config.get("data").get("type_feature")
+
         self.train_df, self.test_df = (
-            self.data[self.data[_type] == "train"],
-            self.data[self.data[_type] == "test"],
+            self.data[self.data[self.type_feature] == "train"].drop(
+                columns=[self.type_feature], errors="ignore"
+            ),
+            self.data[self.data[self.type_feature] == "test"].drop(
+                columns=[self.type_feature], errors="ignore"
+            ),
         )
         return
 
     def _get_model(self) -> Type[ModelInterface]:
         # Model Class Import
-        from src.model.lgbm import Model as lgbm
+        from src.model.lightgbm import Model as lgbm
         from src.model.xgboost import Model as xgb
 
         # 타입별 모델 변경
         model_type = self.model_type.lower()
-        wandb.run.name = model_type
-        if model_type == "lgbm":
+        if model_type == "lightgbm":
             return lgbm
         elif model_type == "xgboost":
             return xgb
@@ -77,17 +81,21 @@ class SimpleModel:
     def _get_pre_process(self) -> list[Type[PreProcessInterface]]:
 
         # Type별 Class 전처리 추가
+        from src.pre_process.submit import Submit
+
         pp_list = []
         for pre_process_type in self.pre_process_types:
             if pre_process_type.lower() == "submit":
-                return pp_list
-                # pp_list.append(BaseLineData)
+                pp_list.append(Submit)
             else:
                 raise Exception(f"{self.model_type}: 해당 모델은 지원되지 않습니다.")
         return pp_list
 
     def train(self):
-        if self.config.get("server").get("mode") == "kfold-train":
+        mode = self.config.get("server").get("mode")
+        assert mode is not None
+        print(f"Training is start({mode})")
+        if mode == "kfold-train":
             self._train_with_kfold()
         self.model.train()
 

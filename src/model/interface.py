@@ -21,13 +21,13 @@ class ModelInterface(ABC):
 
     @abstractmethod
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
-        self.model = None
+        # self.model = None
         self.x_train: pd.DataFrame = x_train
         self.y_train: pd.DataFrame = y_train
         self.config: Dict[any] = config
-        self.model_name = os.path.basename(__file__)
-        params: Dict = self.config.get(self.model_name)
-        params["random_state"] = self.config.get("data").get("random_state")
+        self.model_name = config.get("server").get("model_type")
+        params: Dict[str, any] = self.config.get(self.model_name)
+        params.update({"random_state": self.config.get("data").get("random_state")})
         self.hyper_params = params
         pass
 
@@ -44,7 +44,6 @@ class ModelInterface(ABC):
         pass
 
     def predict(self, df: pd.DataFrame, target: str) -> pd.DataFrame:
-        assert self.model is not None
         df = df.drop(columns=[target], errors="ignore")
         df = self._convert_pred_dataset(df)
         if isinstance(self.model, list):
@@ -59,12 +58,9 @@ class ModelInterface(ABC):
         return df[["index", "pred"]]
 
     def get_model(self):
-        assert self.model is not None
         return self.model
 
     def export_model(self, dir_path):
-        assert self.model is not None
-
         if isinstance(self.model, list):
             for i, e in enumerate(self.model):
                 joblib.dump(e, os.path.join(dir_path, f"{self.model_name}-K-{i}.pkl"))

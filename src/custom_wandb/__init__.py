@@ -18,4 +18,5 @@ class WandB:
         print(server_name)
         self.server_name = server_name
         self.w = wandb
-        self.w.login(key=config.get("wandb").get("api_key"))
+        self.w.login(key=config.get("wandb").get("api-key"))
+        print("W&B Login is completed.")

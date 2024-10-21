@@ -1,8 +1,11 @@
 services:
   server:
-    image: python:3.12.5-slim
+    build: ./
+    working_dir: /app
     volumes:
-      - .:.
+      - ./src:/app/src
+      - ./config.yaml:/config.yaml
+      - ./data:/data
     entrypoint:
       - "python"
-      - "./server/app.py"
+      - "/app/src/server/app.py"

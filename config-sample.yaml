@@ -1,8 +1,8 @@
 # Server / Simple Model Config
 server:
-  no: 1
-  model_type: "lgmb" # .py name => xgboost / lgbm
-  mode: "train" # kfold-train / train Two options
+  number: 1
+  model_type: "lightgbm" # .py name => xgboost / lgbm
+  mode: "kfold-train" # kfold-train / train Two options
   pre_process_type:
     - "submit"
 print:
@@ -13,14 +13,14 @@ data:
     n_folds: 5
     shuffle: True
   random_state: 42
-  path: "https://docs.google.com/uc?export=download&id=18Prn-WrcH6fyOOAHMDld71CyZKR3Y-q5" #V6
-  output_path: "./data" # 해당 파라미터는 수정하지 마세요.
+  path: "/data/processed/V5-2024-10-16-YDS-APT-RANK-RecentD.csv" #V6
+  output_path: "/data/output" # 해당 파라미터는 수정하지 마세요.
   target: "deposit"
   type_feature: "_type" # train/test type feature
 
 ## Model Config
 
-light-gbm:
+lightgbm:
   objective: 'regression'
   metric: 'mae'
   boosting_type: 'gbdt'
@@ -31,16 +31,13 @@ light-gbm:
   bagging_freq: 5
   num_boost_round: 1000
 
-lag-feature:
-  max_lag: 3
-  windows: [ 3, 6, 12 ]
 xgboost:
   objective: "reg:absoluteerror"
   eval_metric: "mae"
   max_depth: 6
   subsample: 0.8
   colsample_bytree: 0.8
-  num_class: 4
+  #  num_class: 4
   learning_rate: 0.05
   num_boost_round: 1000
   early_stopping_rounds: 50

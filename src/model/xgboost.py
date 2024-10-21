@@ -5,7 +5,10 @@ import pandas as pd
 import wandb
 import xgboost as xgb
 from sklearn.metrics import mean_absolute_error
+from wandb.integration.xgboost import WandbCallback
+from xgboost import XGBModel, XGBRegressor
 
+from src.model import print_evaluation
 from src.model.interface import ModelInterface
 from src.model.valid.KFold import CustomKFold
 
@@ -28,6 +31,9 @@ class Model(ModelInterface):
     def _convert_pred_dataset(self, df):
         return xgb.DMatrix(df)
 
+    def _select_model(self) -> [XGBRegressor]:
+        return xgb.XGBRFRegressor
+
     def train(self):
         try:
             # XGBoost를 위한 DMatrix 생성
@@ -38,7 +44,7 @@ class Model(ModelInterface):
                 num_boost_round=self.hyper_params.get("num_boost_round"),
                 early_stopping_rounds=self.hyper_params.get("early_stopping_round"),
                 verbose_eval=self.hyper_params.get("verbose_eval"),
-                callbacks=[print_evaluation()],
+                callbacks=[WandbCallback(log_model=True)],
             )
 
         except Exception as e:
@@ -48,12 +54,16 @@ class Model(ModelInterface):
     def train_with_kfold(self) -> None:
         try:
             kf = CustomKFold().get_fold()
+            print(f"Feature Column is {self.x_train.columns}")
 
             # 각 폴드의 예측 결과를 저장할 리스트
             oof_predictions = np.zeros(len(self.x_train))
-
+            num_boost_round = self.hyper_params.pop("num_boost_round")
+            early_stopping_rounds = self.hyper_params.pop("early_stopping_rounds")
+            verbose_eval = self.hyper_params.pop("verbose_eval")
             # 교차 검증 수행
             for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
+                print(f"Fold-{fold} is Start")
                 if self.model is None or self.model:
                     self.model = []
                 x_train, x_val = (
@@ -64,24 +74,23 @@ class Model(ModelInterface):
                     self.y_train.iloc[train_idx],
                     self.y_train.iloc[val_idx],
                 )
-
+                print(x_train.shape, y_train.shape)
+                print(x_val.shape, y_val.shape)
                 # XGBoost를 위한 DMatrix 생성
                 d_train = xgb.DMatrix(x_train, label=y_train)
                 d_val = xgb.DMatrix(x_val, label=y_val)
-
                 # XGBoost 파라미터 설정
                 # 모델 학습
                 evals = [(d_train, "train"), (d_val, "eval")]
                 model = xgb.train(
                     self.hyper_params,
                     d_train,
-                    num_boost_round=self.hyper_params.get("num_boost_round"),
-                    early_stopping_rounds=self.hyper_params.get("early_stopping_round"),
+                    num_boost_round=num_boost_round,
+                    early_stopping_rounds=early_stopping_rounds,
                     evals=evals,
-                    verbose_eval=self.hyper_params.get("verbose_eval"),
-                    callbacks=[print_evaluation()],
+                    verbose_eval=verbose_eval,
+                    callbacks=[WandbCallback(log_model=True)],
                 )
-
                 self.model.append(model)
                 # 검증 세트에 대한 예측
                 oof_predictions[val_idx] = model.predict(x_val)
@@ -89,4 +98,4 @@ class Model(ModelInterface):
             wandb.log({"MAE": f"{oof_mae:.4f}"})
         except Exception as e:
             print(e)
-            self._reset_model()
+            # self._reset_model()
