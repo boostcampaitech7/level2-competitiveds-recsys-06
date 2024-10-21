@@ -6,7 +6,6 @@ scp -r config.yaml server$server_no:/data/ephemeral/home/level2-competitiveds-re
 ssh server$server_no << ENDSSH
 cd /data/ephemeral/home/level2-competitiveds-recsys-06
 git fetch
-git
 git pull
 cd ./src/server
 
