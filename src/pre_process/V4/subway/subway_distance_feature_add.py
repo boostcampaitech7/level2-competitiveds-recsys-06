@@ -4,7 +4,7 @@ from sklearn.neighbors import BallTree
 
 from typing import List
 from src.pre_process.interface import PreProcessInterface
-from src.pre_process.subway.subwayInfo_feature_add import SubwayInfoFeatureAddition
+from src.pre_process.V4.subway.subwayInfo_feature_add import SubwayInfoFeatureAddition
 
 
 class SubwayDistanceFeatureAddition(PreProcessInterface):
