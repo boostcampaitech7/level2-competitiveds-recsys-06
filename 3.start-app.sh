@@ -1,14 +1,19 @@
+#!/bin/bash
 
 source .env
 scp -r config.yaml server$server_no:/data/ephemeral/home/level2-competitiveds-recsys-06
 
 # ssh 명령어에 .env에서 불러온 변수 사용
 ssh server$server_no << ENDSSH
+#!/bin/bash
 cd /data/ephemeral/home/level2-competitiveds-recsys-06
+
 git fetch
 git pull
-cd ./src/server
 
+/opt/conda/bin/python3 -m pip install -r ./requirements.txt
+
+cd ./src/server
 # app.py가 실행 중인지 확인
 if pgrep -f "python app.py" > /dev/null
 then
@@ -19,8 +24,8 @@ else
     # 원격 서버에서 현재 시간 구하기
     now=\$(date +"%Y%m%d-%H%M%S")
 
-    # 로그 파일 생성 및 app.py 실행
-    nohup python app.py > "$data_log_path"/app-\$now.log 2>&1 &
+    # 로그 파일 생성 및 app.py 실행 nohup
+    /opt/conda/bin/python3 app.py > "$data_log_path"/app-\$now.log 2>&1 &
     echo "app.py가 백그라운드에서 실행되었습니다. 로그는 "$data_log_path"/app-\$now.log에 기록됩니다."
 fi
 ENDSSH
