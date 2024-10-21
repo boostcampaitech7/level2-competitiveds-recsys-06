@@ -13,8 +13,8 @@ data:
     n_folds: 5
     shuffle: True
   random_state: 42
-  path: "/data/ephemeral/home/data/processed/V5-2024-10-16-YDS-APT-RANK-RecentD.csv" #V6
-  output_path: "/data/output" # 해당 파라미터는 수정하지 마세요.
+  path: "data/ephemeral/home/data/data.csv" #V6
+  output_path: "/data/ephemeral/home/data/output" # 해당 파라미터는 수정하지 마세요.
   target: "deposit"
   type_feature: "_type" # train/test type feature
 
