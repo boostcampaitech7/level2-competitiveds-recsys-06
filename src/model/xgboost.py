@@ -1,16 +1,16 @@
-import os.path
-from typing import Dict
+from typing import List
 
-import joblib
-import pandas as pd
 import numpy as np
-
+import pandas as pd
+import wandb
 import xgboost as xgb
-from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
+from sklearn.metrics import mean_absolute_error
+from wandb.integration.xgboost import WandbCallback
+from xgboost import XGBModel, XGBRegressor
 
+from src.model import print_evaluation
 from src.model.interface import ModelInterface
+from src.model.valid.KFold import CustomKFold
 
 
 class Model(ModelInterface):
@@ -22,88 +22,80 @@ class Model(ModelInterface):
     결측치는 자동으로 처리하므로 결측치가 많지 않은 데이터는 따로 처리하지 않아도 됩니다.
     feature importance를 확인할 수 있고, early stopping을 사용할 수 있습니다.
 
-    train() = 모델 트레이닝 입니다.
-    train_validation() = Validation을 위한 모델 트레이닝 입니다.
-    predict() = train() 혹은 train_validation() 후, 예측을 위한 메서드 입니다. - 모델이 없을 경우(오류 발생)
-                / 모델이 있을 경우(결과 & print("validation" or "train") - 모드)
-
     """
 
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
-        self.x_train: pd.DataFrame = x_train
-        self.y_train: pd.DataFrame = y_train
-        self.model: xgb.Booster | None = None
-        self.config: Dict[any] = config
-        params: Dict = self.config.get("xgboost")
-        params["random_state"] = self.config.get("data").get("random_state")
-        self.hyper_params = params
-        self.mode: str | None = None
+        super().__init__(x_train, y_train, config)
+        self.model: xgb.Booster | List[xgb.Booster] | None = None
+
+    def _convert_pred_dataset(self, df):
+        return xgb.DMatrix(df)
+
+    def _select_model(self) -> [XGBRegressor]:
+        return xgb.XGBRFRegressor
 
     def train(self):
         try:
-            self.mode = "train"
-            x_train = self.x_train
-            y_train = self.y_train
-            dtrain = xgb.DMatrix(x_train, label=y_train)
-            # xgb train
+            # XGBoost를 위한 DMatrix 생성
+            d_train = xgb.DMatrix(self.x_train, label=self.y_train)
             self.model = xgb.train(
-                params=self.hyper_params,
-                dtrain=dtrain,
+                self.hyper_params,
+                d_train,
+                num_boost_round=self.hyper_params.get("num_boost_round"),
+                early_stopping_rounds=self.hyper_params.get("early_stopping_round"),
+                verbose_eval=self.hyper_params.get("verbose_eval"),
+                callbacks=[WandbCallback(log_model=True)],
             )
+
         except Exception as e:
             print(e)
             self._reset_model()
 
-    def predict(self, test_df: pd.DataFrame):
-        if self.model is not None:
-            print(f"This model is **{self.mode}**.")
-            # 입력을 DMatrix 형태로
-            dtest = xgb.DMatrix(test_df)
-            return self.model.predict(dtest)
-        raise Exception("Model is not trained")
-
-    def train_validation(self) -> None:
+    def train_with_kfold(self) -> None:
         try:
-            self.mode = "valid"
-            data_config = self.config.get("data")
-            # train_test_split 으로 valid set, train set 분리
-            x_train, x_valid, y_train, y_valid = train_test_split(
-                self.x_train,
-                self.y_train,
-                test_size=data_config.get("valid_size"),
-                random_state=data_config.get("random_state"),
-            )
+            kf = CustomKFold().get_fold()
+            print(f"Feature Column is {self.x_train.columns}")
 
-            # xgb DMatrix
-            dtrain = xgb.DMatrix(x_train, label=y_train)
-            dvalid = xgb.DMatrix(x_valid, label=y_valid)
-
-            # xgb train
-            self.model = xgb.train(
-                params=self.hyper_params,
-                dtrain=dtrain,
-                evals=[(dvalid, "eval")],
-            )
-
-            # xgb predict
-            y_valid_pred = self.predict(x_valid)
-            y_valid_pred_class = np.argmax(
-                y_valid_pred, axis=1
-            )  # multi:softprob 모드 사용시 class로 변환 필요
-
-            # score check
-            accuracy = accuracy_score(y_valid, y_valid_pred_class)
-            auroc = roc_auc_score(y_valid, y_valid_pred, multi_class="ovr")
-            f1 = f1_score(y_valid, y_valid_pred_class, average="weighted")
-
-            print(f"acc: {accuracy}, auroc: {auroc}, f1: {f1}")
+            # 각 폴드의 예측 결과를 저장할 리스트
+            oof_predictions = np.zeros(len(self.x_train))
+            num_boost_round = self.hyper_params.pop("num_boost_round")
+            early_stopping_rounds = self.hyper_params.pop("early_stopping_rounds")
+            verbose_eval = self.hyper_params.pop("verbose_eval")
+            # 교차 검증 수행
+            for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
+                print(f"Fold-{fold} is Start")
+                if self.model is None or self.model:
+                    self.model = []
+                x_train, x_val = (
+                    self.x_train.iloc[train_idx],
+                    self.x_train.iloc[val_idx],
+                )
+                y_train, y_val = (
+                    self.y_train.iloc[train_idx],
+                    self.y_train.iloc[val_idx],
+                )
+                print(x_train.shape, y_train.shape)
+                print(x_val.shape, y_val.shape)
+                # XGBoost를 위한 DMatrix 생성
+                d_train = xgb.DMatrix(x_train, label=y_train)
+                d_val = xgb.DMatrix(x_val, label=y_val)
+                # XGBoost 파라미터 설정
+                # 모델 학습
+                evals = [(d_train, "train"), (d_val, "eval")]
+                model = xgb.train(
+                    self.hyper_params,
+                    d_train,
+                    num_boost_round=num_boost_round,
+                    early_stopping_rounds=early_stopping_rounds,
+                    evals=evals,
+                    verbose_eval=verbose_eval,
+                    callbacks=[WandbCallback(log_model=True)],
+                )
+                self.model.append(model)
+                # 검증 세트에 대한 예측
+                oof_predictions[val_idx] = model.predict(x_val)
+            oof_mae = mean_absolute_error(self.y_train, oof_predictions)
+            wandb.log({"MAE": f"{oof_mae:.4f}"})
         except Exception as e:
             print(e)
-            self._reset_model()
-
-    def _reset_model(self):
-        self.mode = None
-        self.model = None
-
-    def export_model(self, dir_path):
-        joblib.dump(self.model, os.path.join(dir_path, "xgboost.pkl"))
+            # self._reset_model()
