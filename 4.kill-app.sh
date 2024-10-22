@@ -1,12 +1,22 @@
 source .env
 
 ssh server$server_no << 'ENDSSH'
-if pgrep -f "python app.py" > /dev/null
+if pgrep -f "/opt/conda/" > /dev/null
 then
     echo "app.py가 실행 중입니다. 종료를 시작합니다."
 
-    # 실행 중인 app.py 프로세스의 PID를 찾아서 강제 종료
-    pkill -f "python app.py"
+    # '/opt/conda/bin/python3'가 포함된 프로세스 종료
+    pids=$(pgrep -f '/opt/conda/')
+
+    if [ -z "$pids" ]; then
+        echo "No processes found with /opt/conda/bin/python3."
+    else
+        for pid in $pids; do
+            echo "Killing process ID: $pid"
+            kill -9 $pid  # -9 옵션은 강제 종료를 의미합니다.
+        done
+        echo "All specified processes have been killed."
+    fi
 
     if [ $? -eq 0 ]; then
         echo "app.py가 성공적으로 종료되었습니다."
