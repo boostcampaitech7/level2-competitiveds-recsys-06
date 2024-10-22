@@ -26,19 +26,18 @@ class Model(ModelInterface):
 
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
         super().__init__(x_train, y_train, config)
-        self.model: List[xgb.Booster]
+        self.model: List[xgb.Booster] = []
 
     def _convert_pred_dataset(self, df):
         return xgb.DMatrix(df)
 
-    def _select_model(self) -> [XGBRegressor]:
-        return xgb.XGBRFRegressor
+    def get_model(self) -> List[xgb.Booster]:
+        return self.model
 
     def train(self):
         try:
             # XGBoost를 위한 DMatrix 생성
             d_train = xgb.DMatrix(self.x_train, label=self.y_train)
-            self.model = []
             model = xgb.train(
                 self.hyper_params,
                 d_train,
@@ -51,7 +50,6 @@ class Model(ModelInterface):
 
         except Exception as e:
             print(e)
-            self._reset_model()
 
     def train_with_kfold(self) -> None:
         try:
@@ -96,4 +94,3 @@ class Model(ModelInterface):
             wandb.log({"MAE": f"{oof_mae:.4f}"})
         except Exception as e:
             print(e)
-            self._reset_model()

@@ -18,18 +18,20 @@ class Model(ModelInterface):
     해당 모델은 BaseLine 모델입니다.
     """
 
-    def _convert_pred_dataset(self, df):
-        pass
-
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
         super().__init__(x_train, y_train, config)
-        self.model: List[Booster]
+        self.model: List[Booster] = []
+
+    def _convert_pred_dataset(self, df):
+        return df
+
+    def get_model(self) -> List[Booster]:
+        return self.model
 
     def train(self):
         try:
             train_data = lgb.Dataset(self.x_train, label=self.y_train)
             # lgb train
-            self.model = []
             model = lgb.train(
                 params=self.hyper_params,
                 train_set=train_data,
@@ -39,7 +41,6 @@ class Model(ModelInterface):
             self.model.append(model)
         except Exception as e:
             print(e)
-            self._reset_model()
 
     def train_with_kfold(self) -> None:
         try:
@@ -80,4 +81,3 @@ class Model(ModelInterface):
 
         except Exception as e:
             print(e)
-            self._reset_model()
