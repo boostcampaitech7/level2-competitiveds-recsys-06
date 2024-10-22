@@ -29,12 +29,14 @@ class Model(ModelInterface):
         try:
             train_data = lgb.Dataset(self.x_train, label=self.y_train)
             # lgb train
-            self.model = lgb.train(
+            self.model = []
+            model = lgb.train(
                 params=self.hyper_params,
                 train_set=train_data,
                 num_boost_round=self.hyper_params.get("num_boost_round"),
                 callbacks=[print_evaluation()],
             )
+            self.model.append(model)
         except Exception as e:
             print(e)
             self._reset_model()
@@ -45,7 +47,7 @@ class Model(ModelInterface):
             print(f"Feature Column is {self.x_train.columns}")
             # 각 폴드의 예측 결과를 저장할 리스트
             oof_predictions = np.zeros(len(self.x_train))
-
+            num_boost_round = self.hyper_params.pop("num_boost_round")
             # 교차 검증 수행
             for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
                 print(f"Fold-{fold} is Start")
@@ -57,7 +59,6 @@ class Model(ModelInterface):
                     self.y_train.iloc[train_idx],
                     self.y_train.iloc[val_idx],
                 )
-                num_boost_round = self.hyper_params.pop("num_boost_round")
                 d_train = lgb.Dataset(x_train, label=y_train)
                 d_val = lgb.Dataset(x_val, label=y_val, reference=d_train)
                 model = lgb.train(

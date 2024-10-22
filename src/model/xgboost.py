@@ -38,7 +38,8 @@ class Model(ModelInterface):
         try:
             # XGBoost를 위한 DMatrix 생성
             d_train = xgb.DMatrix(self.x_train, label=self.y_train)
-            self.model = xgb.train(
+            self.model = []
+            model = xgb.train(
                 self.hyper_params,
                 d_train,
                 num_boost_round=self.hyper_params.get("num_boost_round"),
@@ -46,6 +47,7 @@ class Model(ModelInterface):
                 verbose_eval=self.hyper_params.get("verbose_eval"),
                 callbacks=[WandbCallback(log_model=True)],
             )
+            self.model.append(model)
 
         except Exception as e:
             print(e)
