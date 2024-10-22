@@ -23,7 +23,7 @@ class Model(ModelInterface):
 
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
         super().__init__(x_train, y_train, config)
-        self.model: List[Booster] | Booster | None = None
+        self.model: List[Booster]
 
     def train(self):
         try:
@@ -49,8 +49,6 @@ class Model(ModelInterface):
             # 교차 검증 수행
             for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
                 print(f"Fold-{fold} is Start")
-                if self.model is None or self.model:
-                    self.model = []
                 x_train, x_val = (
                     self.x_train.iloc[train_idx],
                     self.x_train.iloc[val_idx],
@@ -59,12 +57,13 @@ class Model(ModelInterface):
                     self.y_train.iloc[train_idx],
                     self.y_train.iloc[val_idx],
                 )
+                num_boost_round = self.hyper_params.pop("num_boost_round")
                 d_train = lgb.Dataset(x_train, label=y_train)
                 d_val = lgb.Dataset(x_val, label=y_val, reference=d_train)
                 model = lgb.train(
                     self.hyper_params,
                     d_train,
-                    # num_boost_round=self.hyper_params.get("num_boost_round"),
+                    num_boost_round=num_boost_round,
                     valid_sets=[d_train, d_val],
                     callbacks=[print_evaluation()],
                 )
