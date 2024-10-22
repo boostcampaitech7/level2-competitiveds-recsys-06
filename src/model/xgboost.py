@@ -74,8 +74,6 @@ class Model(ModelInterface):
                     self.y_train.iloc[train_idx],
                     self.y_train.iloc[val_idx],
                 )
-                print(x_train.shape, y_train.shape)
-                print(x_val.shape, y_val.shape)
                 # XGBoost를 위한 DMatrix 생성
                 d_train = xgb.DMatrix(x_train, label=y_train)
                 d_val = xgb.DMatrix(x_val, label=y_val)
