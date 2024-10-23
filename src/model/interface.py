@@ -59,8 +59,5 @@ class ModelInterface(ABC):
         pass
 
     def export_model(self, dir_path):
-        if isinstance(self.model, list):
-            for i, e in enumerate(self.model):
-                joblib.dump(e, os.path.join(dir_path, f"{self.model_name}-K-{i}.pkl"))
-        else:
-            joblib.dump(self.model, os.path.join(dir_path, f"{self.model_name}.pkl"))
+        for i, e in enumerate(self.get_model()):
+            joblib.dump(e, os.path.join(dir_path, f"{self.model_name}-K-{i}.pkl"))
