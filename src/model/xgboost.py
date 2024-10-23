@@ -108,7 +108,7 @@ class WandbCallback(TrainingCallback):
         self.log_metrics = [get_config().get("xgboost").get("eval-metric")]
         self.log_interval = get_config().get("print").get("evaluation-period")
         self.fold_subfix = ""
-        self.current_step = 0
+        self.current_step = current_step
         if n_fold is not None:
             self.fold_subfix = f"{n_fold}_"
 
