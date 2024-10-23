@@ -53,7 +53,7 @@ class ModelInterface(ABC):
         df[target] = pred
         df.reset_index(inplace=True, drop=True)
         df.reset_index(inplace=True, drop=False)
-        return df[["index", "pred"]]
+        return df[["index", target]]
 
     @abstractmethod
     def get_model(self):
