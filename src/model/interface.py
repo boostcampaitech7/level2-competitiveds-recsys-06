@@ -21,7 +21,6 @@ class ModelInterface(ABC):
 
     @abstractmethod
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
-        # self.model = None
         self.x_train: pd.DataFrame = x_train
         self.y_train: pd.DataFrame = y_train
         self.config: Dict[any] = config
@@ -45,27 +44,20 @@ class ModelInterface(ABC):
 
     def predict(self, df: pd.DataFrame, target: str) -> pd.DataFrame:
         df = df.drop(columns=[target], errors="ignore")
-        df = self._convert_pred_dataset(df)
-        if isinstance(self.model, list):
-            oof_pred = np.zeros(df.shape[0])
-            for e in self.model:
-                oof_pred += e.predict(df)
-            pred = oof_pred / len(self.model)
-        else:
-            pred = self.model.predict(df)
+        c_df = self._convert_pred_dataset(df)
+        oof_pred = np.zeros(df.shape[0])
+        model = self.get_model()
+        for e in model:
+            oof_pred += e.predict(c_df)
+        pred = oof_pred / len(model)
         df["pred"] = pred
         df.reset_index(inplace=True, drop=False)
         return df[["index", "pred"]]
 
+    @abstractmethod
     def get_model(self):
-        return self.model
+        pass
 
     def export_model(self, dir_path):
-        if isinstance(self.model, list):
-            for i, e in enumerate(self.model):
-                joblib.dump(e, os.path.join(dir_path, f"{self.model_name}-K-{i}.pkl"))
-        else:
-            joblib.dump(self.model, os.path.join(dir_path, f"{self.model_name}.pkl"))
-
-    def _reset_model(self):
-        self.model = None
+        for i, e in enumerate(self.get_model()):
+            joblib.dump(e, os.path.join(dir_path, f"{self.model_name}-K-{i}.pkl"))

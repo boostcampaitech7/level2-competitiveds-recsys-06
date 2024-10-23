@@ -18,26 +18,29 @@ class Model(ModelInterface):
     해당 모델은 BaseLine 모델입니다.
     """
 
-    def _convert_pred_dataset(self, df):
-        pass
-
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
         super().__init__(x_train, y_train, config)
-        self.model: List[Booster] | Booster | None = None
+        self.model: List[Booster] = []
+
+    def _convert_pred_dataset(self, df):
+        return df
+
+    def get_model(self) -> List[Booster]:
+        return self.model
 
     def train(self):
         try:
             train_data = lgb.Dataset(self.x_train, label=self.y_train)
             # lgb train
-            self.model = lgb.train(
+            model = lgb.train(
                 params=self.hyper_params,
                 train_set=train_data,
                 num_boost_round=self.hyper_params.get("num_boost_round"),
                 callbacks=[print_evaluation()],
             )
+            self.model.append(model)
         except Exception as e:
             print(e)
-            self._reset_model()
 
     def train_with_kfold(self) -> None:
         try:
@@ -45,12 +48,10 @@ class Model(ModelInterface):
             print(f"Feature Column is {self.x_train.columns}")
             # 각 폴드의 예측 결과를 저장할 리스트
             oof_predictions = np.zeros(len(self.x_train))
-
+            num_boost_round = self.hyper_params.pop("num_boost_round")
             # 교차 검증 수행
             for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
                 print(f"Fold-{fold} is Start")
-                if self.model is None or self.model:
-                    self.model = []
                 x_train, x_val = (
                     self.x_train.iloc[train_idx],
                     self.x_train.iloc[val_idx],
@@ -64,7 +65,7 @@ class Model(ModelInterface):
                 model = lgb.train(
                     self.hyper_params,
                     d_train,
-                    # num_boost_round=self.hyper_params.get("num_boost_round"),
+                    num_boost_round=num_boost_round,
                     valid_sets=[d_train, d_val],
                     callbacks=[print_evaluation()],
                 )
@@ -80,4 +81,3 @@ class Model(ModelInterface):
 
         except Exception as e:
             print(e)
-            self._reset_model()

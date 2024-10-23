@@ -1,10 +1,14 @@
 # Server / Simple Model Config
 server:
   number: 1
-  model_type: "lightgbm" # .py name => xgboost / lgbm
+  model_type: "lightgbm" # model config name과 일치하도록 작성
   mode: "kfold-train" # kfold-train / train Two options
   pre_process_type:
     - "submit"
+# W&B
+wandb:
+  api-key: "5e96932243a958f5627158025c6cab0d40477df4"
+
 print:
   evaluation-period: 100 # Only input int
 # Data Config
@@ -13,10 +17,11 @@ data:
     n_folds: 5
     shuffle: True
   random_state: 42
-  path: "/data/ephemeral/home/data/processed/V5-2024-10-16-YDS-APT-RANK-RecentD.csv" #V6
-  output_path: "/data/output" # 해당 파라미터는 수정하지 마세요.
+  output_path: "/data/ephemeral/home/data/output" # 해당 파라미터는 수정하지 마세요.
+  path: "/data/ephemeral/home/data/data.csv" #V6
   target: "deposit"
   type_feature: "_type" # train/test type feature
+# Data Config
 
 ## Model Config
 
@@ -24,25 +29,26 @@ lightgbm:
   objective: 'regression'
   metric: 'mae'
   boosting_type: 'gbdt'
-  num_leaves: 31
-  learning_rate: 0.05
-  feature_fraction: 0.9
-  bagging_fraction: 0.8
-  bagging_freq: 5
-  num_boost_round: 1000
+  num_leaves: 100
+  learning_rate: 0.01
+  feature_fraction: 0.8
+  bagging_fraction: 0.7
+  bagging_freq: 1
+  num_boost_round: 10000
+  early_stopping_rounds: 100
+  gpu_platform_id: 0
+  gpu_device_id: 0
 
 xgboost:
   objective: "reg:absoluteerror"
   eval_metric: "mae"
-  max_depth: 6
-  subsample: 0.8
-  colsample_bytree: 0.8
+  max_depth: 100
+  subsample: 0.7
+  colsample_bytree: 0.7
   #  num_class: 4
-  learning_rate: 0.05
-  num_boost_round: 1000
-  early_stopping_rounds: 50
-  verbose: 10
-
-#tree_method: 'gpu_hist' #GPU 사용시
-#predictor: 'gpu_predictor' #GPU 사용시
+  learning_rate: 0.01
+  num_boost_round: 50000
+  early_stopping_rounds: 100
+  verbose_eval: 20
+  device: 'cuda' #GPU 사용시
 

@@ -26,19 +26,19 @@ class Model(ModelInterface):
 
     def __init__(self, x_train: pd.DataFrame, y_train: pd.DataFrame, config: any):
         super().__init__(x_train, y_train, config)
-        self.model: xgb.Booster | List[xgb.Booster] | None = None
+        self.model: List[xgb.Booster] = []
 
     def _convert_pred_dataset(self, df):
         return xgb.DMatrix(df)
 
-    def _select_model(self) -> [XGBRegressor]:
-        return xgb.XGBRFRegressor
+    def get_model(self) -> List[xgb.Booster]:
+        return self.model
 
     def train(self):
         try:
             # XGBoost를 위한 DMatrix 생성
             d_train = xgb.DMatrix(self.x_train, label=self.y_train)
-            self.model = xgb.train(
+            model = xgb.train(
                 self.hyper_params,
                 d_train,
                 num_boost_round=self.hyper_params.get("num_boost_round"),
@@ -46,10 +46,10 @@ class Model(ModelInterface):
                 verbose_eval=self.hyper_params.get("verbose_eval"),
                 callbacks=[WandbCallback(log_model=True)],
             )
+            self.model.append(model)
 
         except Exception as e:
             print(e)
-            self._reset_model()
 
     def train_with_kfold(self) -> None:
         try:
@@ -64,8 +64,6 @@ class Model(ModelInterface):
             # 교차 검증 수행
             for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
                 print(f"Fold-{fold} is Start")
-                if self.model is None or self.model:
-                    self.model = []
                 x_train, x_val = (
                     self.x_train.iloc[train_idx],
                     self.x_train.iloc[val_idx],
@@ -74,8 +72,6 @@ class Model(ModelInterface):
                     self.y_train.iloc[train_idx],
                     self.y_train.iloc[val_idx],
                 )
-                print(x_train.shape, y_train.shape)
-                print(x_val.shape, y_val.shape)
                 # XGBoost를 위한 DMatrix 생성
                 d_train = xgb.DMatrix(x_train, label=y_train)
                 d_val = xgb.DMatrix(x_val, label=y_val)
@@ -98,4 +94,3 @@ class Model(ModelInterface):
             wandb.log({"MAE": f"{oof_mae:.4f}"})
         except Exception as e:
             print(e)
-            # self._reset_model()

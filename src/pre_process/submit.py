@@ -16,8 +16,8 @@ class Submit(PreProcessInterface):
     def _preprocess(self):
         type_feature = get_config().get("data").get("type_feature")
         for c in self.df.columns:
-            if self.df[c].dtype == "object" and c != type_feature:
-                self.df.drop(columns=[c], inplace=True)
+            if (self.df[c].dtype == "object" and c != type_feature) or c == "index":
+                self.df.drop(columns=[c], inplace=True, errors="ignore")
 
     def get_data(self) -> pd.DataFrame:
         return self.df
