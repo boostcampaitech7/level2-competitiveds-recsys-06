@@ -85,7 +85,11 @@ class Model(ModelInterface):
                     early_stopping_rounds=early_stopping_rounds,
                     evals=evals,
                     verbose_eval=verbose_eval,
-                    callbacks=[WandbCallback(n_fold=fold)],
+                    callbacks=[
+                        WandbCallback(
+                            n_fold=fold, current_step=(fold - 1) * num_boost_round
+                        )
+                    ],
                 )
                 self.model.append(model)
                 # 검증 세트에 대한 예측
@@ -98,11 +102,12 @@ class Model(ModelInterface):
 
 # Custom W&B Callback 정의
 class WandbCallback(TrainingCallback):
-    def __init__(self, n_fold=None):
+    def __init__(self, n_fold=None, current_step=0):
         super().__init__()
         self.log_metrics = [get_config().get("xgboost").get("eval-metric")]
         self.log_interval = get_config().get("print").get("evaluation-period")
         self.fold_subfix = ""
+        self.current_step = 0
         if n_fold is not None:
             self.fold_subfix = f"{n_fold}_"
 
@@ -116,7 +121,8 @@ class WandbCallback(TrainingCallback):
                         metrics_to_log[f"{self.fold_subfix}{dataset}_{metric}"] = (
                             values[-1]
                         )
-            wandb.log(metrics_to_log, step=epoch + 1)
+            self.current_step += epoch + 1
+            wandb.log(metrics_to_log, step=self.current_step)
 
         return False  # 학습 계속
 
