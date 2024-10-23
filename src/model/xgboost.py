@@ -95,6 +95,7 @@ class Model(ModelInterface):
                 # 검증 세트에 대한 예측
                 oof_predictions[val_idx] = model.predict(d_val)
             oof_mae = mean_absolute_error(self.y_train, oof_predictions)
+            print(f"MAE:{oof_mae:.4f}")
             wandb.log({"MAE": f"{oof_mae:.4f}"})
         except Exception as e:
             print(e)
