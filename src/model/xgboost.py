@@ -100,7 +100,7 @@ class Model(ModelInterface):
 class WandbCallback(TrainingCallback):
     def __init__(self, n_fold=None):
         super().__init__()
-        self.log_metrics = get_config().get("xgboost").get("eval-metric")
+        self.log_metrics = [get_config().get("xgboost").get("eval-metric")]
         self.log_interval = get_config().get("print").get("evaluation-period")
         self.fold_subfix = ""
         if n_fold is not None:
