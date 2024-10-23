@@ -1,6 +1,7 @@
 import datetime
 import sys
 import os
+from pprint import pprint
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,7 +22,7 @@ def app():
     run_name = f"{server_conf.get('number')}-{server_conf.get('model_type')}-{server_conf.get('mode')}"
     with wandb.init() as run:
         print(f"start {run_name}")
-        print(f"config : {config}")
+        pprint(f"config : {config}")
         run.log({"config": config})
         run.name = run_name
         run._notes = config
