@@ -5,9 +5,9 @@ import pandas as pd
 import wandb
 import xgboost as xgb
 from sklearn.metrics import mean_absolute_error
-from wandb.integration.xgboost import WandbCallback
-from xgboost import XGBModel, XGBRegressor
+from xgboost.callback import TrainingCallback
 
+from src.config import get_config
 from src.model import print_evaluation
 from src.model.interface import ModelInterface
 from src.model.valid.KFold import CustomKFold
@@ -44,7 +44,7 @@ class Model(ModelInterface):
                 num_boost_round=self.hyper_params.get("num_boost_round"),
                 early_stopping_rounds=self.hyper_params.get("early_stopping_round"),
                 verbose_eval=self.hyper_params.get("verbose_eval"),
-                callbacks=[WandbCallback(log_model=True)],
+                callbacks=[WandbCallback()],
             )
             self.model.append(model)
 
@@ -85,12 +85,56 @@ class Model(ModelInterface):
                     early_stopping_rounds=early_stopping_rounds,
                     evals=evals,
                     verbose_eval=verbose_eval,
-                    callbacks=[WandbCallback(log_model=True)],
+                    callbacks=[WandbCallback(n_fold=fold)],
                 )
                 self.model.append(model)
                 # 검증 세트에 대한 예측
-                oof_predictions[val_idx] = model.predict(x_val)
+                oof_predictions[val_idx] = model.predict(d_val)
             oof_mae = mean_absolute_error(self.y_train, oof_predictions)
             wandb.log({"MAE": f"{oof_mae:.4f}"})
         except Exception as e:
             print(e)
+
+
+# Custom W&B Callback 정의
+class WandbCallback(TrainingCallback):
+    def __init__(self, n_fold=None):
+        super().__init__()
+        self.log_metrics = get_config().get("xgboost").get("eval-metric")
+        self.log_interval = get_config().get("print").get("evaluation-period")
+        self.fold_subfix = ""
+        if n_fold is not None:
+            self.fold_subfix = f"{n_fold}_"
+
+    def after_iteration(self, model, epoch, evals_log):
+        """매 부스팅 라운드 이후 실행되는 메서드"""
+        if (epoch + 1) % self.log_interval == 0:
+            metrics_to_log = {}
+            for dataset, metric_dict in evals_log.items():
+                for metric, values in metric_dict.items():
+                    if metric in self.log_metrics:
+                        metrics_to_log[f"{self.fold_subfix}{dataset}_{metric}"] = (
+                            values[-1]
+                        )
+            wandb.log(metrics_to_log, step=epoch + 1)
+
+        return False  # 학습 계속
+
+    def after_training(self, model):
+        """학습 종료 후 Feature Importance 기록"""
+        # Feature Importance 추출
+        importance_types = ["weight", "gain", "cover"]
+        for imp_type in importance_types:
+            feature_importance = model.get_score(importance_type=imp_type)
+            sorted_importance = dict(
+                sorted(
+                    feature_importance.items(), key=lambda item: item[1], reverse=True
+                )
+            )
+
+            # W&B에 Feature Importance 기록
+            wandb.log(
+                {f"{self.fold_subfix}feature_importance_{imp_type}": sorted_importance}
+            )
+
+        return model
