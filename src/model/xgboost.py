@@ -61,6 +61,7 @@ class Model(ModelInterface):
             num_boost_round = self.hyper_params.pop("num_boost_round")
             early_stopping_rounds = self.hyper_params.pop("early_stopping_rounds")
             verbose_eval = self.hyper_params.pop("verbose_eval")
+            wandb_callback = WandbCallback()
             # 교차 검증 수행
             for fold, (train_idx, val_idx) in enumerate(kf.split(self.x_train), 1):
                 print(f"Fold-{fold} is Start")
@@ -85,11 +86,7 @@ class Model(ModelInterface):
                     early_stopping_rounds=early_stopping_rounds,
                     evals=evals,
                     verbose_eval=verbose_eval,
-                    callbacks=[
-                        WandbCallback(
-                            n_fold=fold, current_step=(fold - 1) * num_boost_round
-                        )
-                    ],
+                    callbacks=[wandb_callback],
                 )
                 self.model.append(model)
                 # 검증 세트에 대한 예측
@@ -103,14 +100,13 @@ class Model(ModelInterface):
 
 # Custom W&B Callback 정의
 class WandbCallback(TrainingCallback):
-    def __init__(self, n_fold=None, current_step=0):
+    def __init__(self):
         super().__init__()
         self.log_metrics = [get_config().get("xgboost").get("eval-metric")]
         self.log_interval = get_config().get("print").get("evaluation-period")
         self.fold_subfix = ""
-        self.current_step = current_step
-        if n_fold is not None:
-            self.fold_subfix = f"{n_fold}_"
+        self.n_fold = 0
+        self.current_step = 0
 
     def after_iteration(self, model, epoch, evals_log):
         """매 부스팅 라운드 이후 실행되는 메서드"""
@@ -119,9 +115,7 @@ class WandbCallback(TrainingCallback):
             for dataset, metric_dict in evals_log.items():
                 for metric, values in metric_dict.items():
                     if metric in self.log_metrics:
-                        metrics_to_log[f"{self.fold_subfix}{dataset}_{metric}"] = (
-                            values[-1]
-                        )
+                        metrics_to_log[f"{dataset}_{metric}"] = values[-1]
             self.current_step += epoch + 1
             wandb.log(metrics_to_log, step=self.current_step)
 
@@ -141,7 +135,7 @@ class WandbCallback(TrainingCallback):
 
             # W&B에 Feature Importance 기록
             wandb.log(
-                {f"{self.fold_subfix}feature_importance_{imp_type}": sorted_importance}
+                {f"feature_importance_{imp_type}_{self.n_fold}": sorted_importance}
             )
-
+            self.n_fold += 1
         return model
