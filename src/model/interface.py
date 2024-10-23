@@ -50,7 +50,8 @@ class ModelInterface(ABC):
         for e in model:
             oof_pred += e.predict(c_df)
         pred = oof_pred / len(model)
-        df["pred"] = pred
+        df[target] = pred
+        df.reset_index(inplace=True, drop=True)
         df.reset_index(inplace=True, drop=False)
         return df[["index", "pred"]]
 
