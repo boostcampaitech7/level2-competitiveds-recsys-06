@@ -95,9 +95,15 @@ class Model(ModelInterface):
             print(f"MAE:{oof_mae:.4f}")
             wandb.log({"MAE": f"{oof_mae:.4f}"})
 
-            oof_mae = mean_absolute_error(
-                np.expm1(self.y_train), np.expm1(oof_predictions)
-            )
+            ## Log 부분
+            y_train, oof_predictions = np.expm1(self.y_train), np.expm1(oof_predictions)
+            if self.y_train.name == "area_price":
+                area_m2 = np.expm1(self.x_train["area_m2"])
+                y_train, oof_predictions = (
+                    y_train * area_m2,
+                    oof_predictions * area_m2,
+                )
+            oof_mae = mean_absolute_error(y_train, oof_predictions)
             print(f"Log-T-MAE:{oof_mae:.4f}")
             wandb.log({"Log-T-MAE": f"{oof_mae:.4f}"})
         except Exception as e:
