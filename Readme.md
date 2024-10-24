@@ -274,10 +274,10 @@ temp_df["nearest_subway_idx"] = (
 
 ## 6. 최종 결과
 1. 아래의 서로 다른 하이퍼파라미터와 피처를 가진 XGBoost와 LightGBM 4가지 모델의 타겟 값(deposit)을 가중 평균해서 final 생성(0.125+0.125+0.25+0.5)
-- public score : 3483.0271 / private score : 
+- public score : 3483.0271 / private score : 4279.3377
 
 2. V9 데이터셋을 적용한 두 모델 LightGBM 25% + XGBoost 75%를 섞어 생성
-- public score : 3506.4542 / private score : 
+- public score : 3506.4542 / private score : 4307.9871
 
 <details>
     <summary>V9 데이터셋</summary>
