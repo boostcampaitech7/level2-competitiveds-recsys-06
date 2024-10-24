@@ -80,7 +80,7 @@ class Model(ModelInterface):
             print("MAE : ", oof_mae)
 
             ##Log
-            oof_mae = mean_absolute_error(self.y_train, np.expm1(oof_predictions))
+            oof_mae = mean_absolute_error(np.expm1(self.y_train), np.expm1(oof_predictions))
             print(f"Log-T-MAE:{oof_mae:.4f}")
             wandb.log({"Log-T-MAE": f"{oof_mae:.4f}"})
 
