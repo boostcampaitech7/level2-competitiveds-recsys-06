@@ -10,9 +10,13 @@
 │   ├── config # config.yaml 값 가져 오는 함수 제공
 │   ├── model # AI 모델 src ex) Light GBM, XGBoost
 │   └── pre_process # 모델 학습전 전처리
+│   └── custom_wandb
+│   └── plot 
+│   └── server 
 ├── data #.gitignore
 │   └── .csv #.gitignore
 │     └── processed # 기타 csv 저장을 위한 저장소
+|     └── raw # 원본 csv 저장을 위한 저장소
 ├── EDA # 개인 EDA 폴더
 │   └── {팀원 명} 
 │        ├──*.ipynb
